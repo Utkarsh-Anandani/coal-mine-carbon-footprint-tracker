@@ -3,6 +3,9 @@
 All inputs are considered on yearly basis
 
 - Open Cast Or Underground mine (dropdown)
+- Duration for Calculation
+  - From (date)
+  - To (date)
 
 ## Fugitive Emissions
 
