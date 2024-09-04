@@ -1,15 +1,14 @@
 import Image from "next/image";
-
+import Navbar from "./components/Navbar";
+import MiningForm from "./components/Miningform";
 export default function Home() {
   return (
-    <div className="mx-auto py-8 max-w-screen-xl">
-      <h1 className="text-2xl font-medium pb-2">
-        Coal mine carbon footprint tracker
-      </h1>
-      <p>
-        A web application to track the carbon footprint of coal mines and
-        improve their sustainability.
-      </p>
+    <>
+    <Navbar/>
+    <div className="mt-[5%]">
+      <MiningForm />
     </div>
+    
+    </>
   );
 }
