@@ -1,3 +1,5 @@
+import { BarChartComponent } from "@/components/bar-chart";
+import { PieChartComponent } from "@/components/pie-chart";
 import Link from "next/link";
 
 export default function Home() {
@@ -13,6 +15,11 @@ export default function Home() {
           <span>Add Data</span>
         </div>
       </Link>
+      {/* the error in console is because of rechart, it might soon be fixed: https://github.com/recharts/recharts/issues/3615 */}
+      <div className="flex py-8">
+        <PieChartComponent />
+        <BarChartComponent />
+      </div>
     </div>
   );
 }
