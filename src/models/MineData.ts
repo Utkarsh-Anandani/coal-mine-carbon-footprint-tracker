@@ -4,8 +4,7 @@ export interface MineInterface {
   openCast: Boolean;
   fugitiveEmissions: {
     coalMined: Number;
-    seamDegree: String | null;
-    mineDegree: String | null;
+    degree: "seam-degree-I" | "seam-degree-II" | "seam-degree-III" | "mine-degree-I" | "mine-degree-II" | "mine-degree-III";
   };
   fuelUsage: {
     excavation: Number;
@@ -21,6 +20,7 @@ export interface MineInterface {
   };
 }
 interface MineSchemaInterface extends Document {
+  owner: String;
   mines: MineInterface[];
   from: Date;
   to: Date;
