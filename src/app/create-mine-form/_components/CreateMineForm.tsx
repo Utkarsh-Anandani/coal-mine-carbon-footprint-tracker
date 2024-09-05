@@ -16,7 +16,7 @@ import { PlusIcon } from "@radix-ui/react-icons";
 
 const FugitiveEmissionsSchema = z.object({
   coalMined: z.number(),
-  seamDegree: z.string().min(2),
+  seamDegree: z.string().nullable(),
   mineDegree: z.string().nullable(),
 });
 
@@ -95,7 +95,7 @@ export default function CreateMineForm() {
         }
       }}
     >
-      <div className="mx-auto mt-4 max-w-[800px] rounded-md border p-4">
+      <div className="mx-auto my-4 max-w-[800px] rounded-md border p-4">
         <h1 className="text-xl font-medium">Create Mine</h1>
         {mines.map((mine, index) => (
           <MineForm
@@ -158,6 +158,15 @@ function MineForm({
   mineIndex: number;
   errors: MineErrors;
 }) {
+  const seamDegreeOptions = [1, 2, 3].map((i) => ({
+    label: `Seam Degree ${i}`,
+    value: `${i}`,
+  }));
+  const MineDegreeOptions = [1, 2, 3].map((i) => ({
+    label: `Seam Degree ${i}`,
+    value: `${i}`,
+  }));
+
   return (
     <div key={mineIndex} className="border-b pb-4 pt-8 first-of-type:pt-4">
       <div className="flex items-center justify-between">
@@ -234,23 +243,33 @@ function MineForm({
       </FormGroup>
       <FormGroup>
         <Label>Seam Degree</Label>
-        <Input
-          type="text"
-          value={mine.fugitiveEmissions.seamDegree ?? ""}
-          onChange={(e) => {
+        <Select
+          value={mine.fugitiveEmissions.seamDegree || undefined}
+          onValueChange={(e) => {
             setMines((prevMines) => {
               const newMines = [...prevMines];
               newMines[mineIndex] = {
                 ...newMines[mineIndex],
                 fugitiveEmissions: {
                   ...newMines[mineIndex].fugitiveEmissions,
-                  seamDegree: e.target.value,
+                  seamDegree: e,
                 },
               };
               return newMines;
             });
           }}
-        />
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Seam Degree" />
+          </SelectTrigger>
+          <SelectContent>
+            {seamDegreeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {errors.fugitiveEmissions?.seamDegree && (
           <span className="col-start-2 mt-1 text-sm leading-none text-destructive">
             {errors.fugitiveEmissions?.seamDegree._errors}
@@ -259,23 +278,33 @@ function MineForm({
       </FormGroup>
       <FormGroup>
         <Label>Mine Degree</Label>
-        <Input
-          type="text"
-          value={mine.fugitiveEmissions.mineDegree ?? ""}
-          onChange={(e) => {
+        <Select
+          value={mine.fugitiveEmissions.mineDegree || undefined}
+          onValueChange={(e) => {
             setMines((prevMines) => {
               const newMines = [...prevMines];
               newMines[mineIndex] = {
                 ...newMines[mineIndex],
                 fugitiveEmissions: {
                   ...newMines[mineIndex].fugitiveEmissions,
-                  mineDegree: e.target.value === "" ? null : e.target.value,
+                  mineDegree: e,
                 },
               };
               return newMines;
             });
           }}
-        />{" "}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Seam Degree" />
+          </SelectTrigger>
+          <SelectContent>
+            {MineDegreeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {errors.fugitiveEmissions?.mineDegree && (
           <span className="col-start-2 mt-1 text-sm leading-none text-destructive">
             {errors.fugitiveEmissions?.mineDegree._errors}

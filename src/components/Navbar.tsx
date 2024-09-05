@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import SignIn from "./SignIn";
 export default function Navbar() {
   return (
-    <nav className="h-16 w-full border-b sm:border-b">
+    <nav className="sticky top-0 h-16 w-full border-b bg-background sm:border-b">
       <div className="mx-auto flex h-full w-full max-w-[1500px] items-center gap-2 px-2">
         <Link href="/" className="flex h-full items-center gap-4">
           <span className="hidden translate-y-0.5 text-xl font-bold text-muted-foreground sm:inline-block">
