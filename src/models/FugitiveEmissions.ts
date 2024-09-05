@@ -1,5 +1,6 @@
 import mongoose, { Document, Model } from "mongoose";
-
+// Carbon Emission: emissionFactor m^3 / tonnes per coal / product
+// Calc : emissionFactor * productProduction
 interface FugitiveEmission {
   mineType: string;
   gasReleased: string;
