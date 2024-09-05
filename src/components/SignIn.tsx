@@ -123,7 +123,7 @@ export default function SignIn() {
                 e.preventDefault();
                 setShowPassword(!showPassword);
               }}
-              className="bg-background absolute right-0.5 top-0.5 size-8 rounded-full  hover:bg-background"
+              className="absolute right-0.5 top-0.5 size-8 rounded-full bg-background hover:bg-background"
             >
               {showPassword ? <ShowPassWordIcon /> : <HidePassWordIcon />}
             </Button>
