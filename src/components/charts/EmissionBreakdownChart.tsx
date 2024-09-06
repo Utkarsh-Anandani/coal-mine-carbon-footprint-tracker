@@ -78,7 +78,7 @@ export function EmissionBreakdownChart({
 }) {
   const totalEmissions = React.useMemo(() => {
     return chartDataProp.reduce((acc, curr) => acc + curr.emissions, 0);
-  }, []);
+  }, [chartDataProp]);
 
   return (
     <Card className="flex flex-col">
