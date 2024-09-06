@@ -1,6 +1,7 @@
 import { AreaChartComponent } from "@/components/charts/area-chart";
 import { BarChartComponent } from "@/components/charts/bar-chart";
 import { EmissionBreakdownChart } from "@/components/charts/EmissionBreakdownChart";
+import { PredictionChartComponent } from "@/components/charts/prediction-chart";
 import { Button } from "@/components/ui/button";
 import { ChartConfig } from "@/components/ui/chart";
 import { PlusIcon } from "lucide-react";
@@ -63,6 +64,7 @@ export default function Home() {
           chartDataProp={chartData}
           chartConfigProp={chartConfig}
         />
+        <PredictionChartComponent />
         {/* the error in console is because of rechart, it might soon be fixed: https://github.com/recharts/recharts/issues/3615 */}
         <BarChartComponent />
         <AreaChartComponent />
