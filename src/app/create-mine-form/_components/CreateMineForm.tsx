@@ -2,8 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React, { useState } from "react";
-import { z, ZodFormattedError } from "zod";
+import React, { useState, useTransition } from "react";
 import {
   MineDataType,
   MineDataErrorsType,
@@ -21,8 +20,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "@radix-ui/react-icons";
+import { saveMineData } from "@/actions/saveMineData";
 
 export default function CreateMineForm() {
+  const [submitting, startSubmitting] = useTransition();
   const fromDate = new Date();
   const toDate = new Date();
   toDate.setDate(toDate.getDate() + 365);
@@ -58,7 +59,7 @@ export default function CreateMineForm() {
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
         const mineDataResult = MineDataSchema.safeParse(mineData);
         const mineResults = mineData.mines.map((mine) =>
@@ -74,7 +75,13 @@ export default function CreateMineForm() {
           );
           setMineErrors([]);
           setMineDataErrors({ _errors: [] });
-          // TODO: SUBMIT HERE
+          startSubmitting(async () => {
+            try {
+              await saveMineData(mineDataResult.data);
+            } catch (error) {
+              console.log(error);
+            }
+          });
         } else {
           console.log("Some mines are invalid", mineResults);
           setMineDataErrors(
@@ -186,7 +193,9 @@ export default function CreateMineForm() {
             <PlusIcon className="size-6" />
             <span>Add Mine</span>
           </Button>
-          <Button>Save</Button>
+          <Button disabled={submitting}>
+            {submitting ? "Submitting..." : "Save"}
+          </Button>
         </div>
       </div>
     </form>
