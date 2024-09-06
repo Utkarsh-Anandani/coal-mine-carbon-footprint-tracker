@@ -8,6 +8,7 @@ import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 import { redirect, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { signIn } from "next-auth/react";
 
 const loginSchema = z.object({
   email: z.string().optional(),
@@ -47,19 +48,21 @@ export default function SignIn() {
       startTransitioning(async () => {
         let res;
         try {
-          // res = await signIn("credentials", {
-          //   redirect: false,
-          //   username: result.data.email,
-          //   password: result.data.password,
-          // });
-        } catch (error) {}
-        if (res === "CredentialsSignin") {
-          // if (res?.error === "CredentialsSignin") {
+          res = await signIn("credentials", {
+            redirect: false,
+            username: result.data.email,
+            password: result.data.password,
+          });
+          console.log(res);
+        } catch (error) {
+          console.log(error);
+        }
+        if (res?.error === "CredentialsSignin") {
+          redirect("/");
         } else {
           if (redirectUrl) {
             redirect(redirectUrl);
           }
-          redirect("/");
         }
       });
     } else {

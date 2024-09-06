@@ -24,7 +24,9 @@ import {
 import { cn } from "@/lib/utils";
 import SignIn from "./SignIn";
 import Branding from "./Brancing";
+import { signOut, useSession } from "next-auth/react";
 export default function Navbar() {
+  const { data: session } = useSession();
   return (
     <>
       <div className="flex h-16 items-center justify-center border-b sm:hidden">
@@ -36,7 +38,7 @@ export default function Navbar() {
             <Branding />
           </Link>
           <div className="ml-auto flex items-center gap-2">
-            {true ? <ProfilePicButton /> : <LoginButton />}
+            {session && session.user ? <ProfilePicButton /> : <LoginButton />}
           </div>
         </div>
       </nav>
@@ -74,7 +76,7 @@ function ProfilePicButton() {
             className="cursor-pointer"
             onClick={(e) => {
               e.preventDefault();
-              // signOut();
+              signOut();
             }}
           >
             Logout

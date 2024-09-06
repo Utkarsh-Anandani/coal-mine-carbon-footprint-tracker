@@ -1,5 +1,6 @@
 "use server";
 
+import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import MineData from "@/models/MineData";
 import { getServerSession } from "next-auth";
@@ -58,7 +59,7 @@ export async function saveMineData(formData: FormData) {
   }
   const data = safeData.data;
   // get session
-  const { data: session } = useSession();
+  const session = await getServerSession(authOptions);
   const user = session?.user?.email;
   if (!user) {
     throw new Error("User not found");
