@@ -3,7 +3,15 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
-import { boolean, z, ZodFormattedError } from "zod";
+import { z, ZodFormattedError } from "zod";
+import {
+  MineDataType,
+  MineDataErrorsType,
+  MineErrorsType as MineErrors,
+  MineType as Mine,
+  MineDataSchema,
+  MineSchema,
+} from "@/schema/zod/MineData";
 import {
   Select,
   SelectContent,
@@ -13,49 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "@radix-ui/react-icons";
-
-const FugitiveEmissionsSchema = z.object({
-  coalMined: z.number(),
-  seamDegree: z.string().nullable(),
-  mineDegree: z.string().nullable(),
-});
-
-const FuelUsageSchema = z.object({
-  excavation: z.number(),
-  transportation: z.number(),
-  equipments: z.number(),
-});
-
-const ElectricityUsageSchema = z.object({
-  equipments: z.number(),
-  others: z.number(),
-});
-
-const ExplosivesUsageSchema = z.object({
-  weight: z.number(),
-});
-
-const MineSchema = z.object({
-  openCast: z.boolean(),
-  fugitiveEmissions: FugitiveEmissionsSchema,
-  fuelUsage: FuelUsageSchema,
-  electricityUsage: ElectricityUsageSchema,
-  explosivesUsage: ExplosivesUsageSchema,
-});
-
-const MineDataSchema = z.object({
-  mines: z.array(MineSchema),
-  from: z.string().min(1),
-  to: z.string().min(1),
-});
-
-// Infer TypeScript types from Zod schemas
-type Mine = z.infer<typeof MineSchema>;
-type MineErrors = ZodFormattedError<Mine>;
-
-// Infer TypeScript types from Zod schemas
-type MineDataType = z.infer<typeof MineDataSchema>;
-type MineDataErrorsType = ZodFormattedError<MineDataType>;
 
 export default function CreateMineForm() {
   const fromDate = new Date();
@@ -69,8 +34,7 @@ export default function CreateMineForm() {
         openCast: true,
         fugitiveEmissions: {
           coalMined: 0,
-          seamDegree: "",
-          mineDegree: null,
+          degree: null,
         },
         fuelUsage: {
           excavation: 0,
@@ -200,8 +164,7 @@ export default function CreateMineForm() {
                     openCast: true,
                     fugitiveEmissions: {
                       coalMined: 0,
-                      seamDegree: "",
-                      mineDegree: null,
+                      degree: null,
                     },
                     fuelUsage: {
                       excavation: 0,
@@ -245,15 +208,6 @@ function MineForm({
   mineIndex: number;
   errors: MineErrors;
 }) {
-  const seamDegreeOptions = [1, 2, 3].map((i) => ({
-    label: `Seam Degree ${i}`,
-    value: `${i}`,
-  }));
-  const MineDegreeOptions = [1, 2, 3].map((i) => ({
-    label: `Seam Degree ${i}`,
-    value: `${i}`,
-  }));
-
   return (
     <div key={mineIndex} className="border-b pb-4 pt-8 first-of-type:pt-4">
       <div className="flex items-center justify-between">
@@ -313,62 +267,46 @@ function MineForm({
         )}
       </FormGroup>
       <FormGroup>
-        <Label>Seam Degree</Label>
+        <Label>Degree</Label>
         <Select
-          value={mine.fugitiveEmissions.seamDegree || undefined}
+          value={mine.fugitiveEmissions.degree || undefined}
           onValueChange={(e) => {
             setMine(mineIndex, {
               fugitiveEmissions: {
                 ...mine.fugitiveEmissions,
-                seamDegree: e,
+                degree:
+                  (e as
+                    | "seam-degree-I"
+                    | "seam-degree-II"
+                    | "seam-degree-III"
+                    | "mine-degree-I"
+                    | "mine-degree-II"
+                    | "mine-degree-III") || null,
               },
             });
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Seam Degree" />
+            <SelectValue placeholder="Select Degree" />
           </SelectTrigger>
           <SelectContent>
-            {seamDegreeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {[
+              "seam-degree-I",
+              "seam-degree-II",
+              "seam-degree-III",
+              "mine-degree-I",
+              "mine-degree-II",
+              "mine-degree-III",
+            ].map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {errors.fugitiveEmissions?.seamDegree && (
+        {errors.fugitiveEmissions?.degree && (
           <span className="col-start-2 mt-1 text-sm leading-none text-destructive">
-            {errors.fugitiveEmissions?.seamDegree._errors}
-          </span>
-        )}
-      </FormGroup>
-      <FormGroup>
-        <Label>Mine Degree</Label>
-        <Select
-          value={mine.fugitiveEmissions.mineDegree || undefined}
-          onValueChange={(e) => {
-            setMine(mineIndex, {
-              fugitiveEmissions: {
-                ...mine.fugitiveEmissions,
-                mineDegree: e,
-              },
-            });
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seam Degree" />
-          </SelectTrigger>
-          <SelectContent>
-            {MineDegreeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.fugitiveEmissions?.mineDegree && (
-          <span className="col-start-2 mt-1 text-sm leading-none text-destructive">
-            {errors.fugitiveEmissions?.mineDegree._errors}
+            {errors.fugitiveEmissions?.degree._errors}
           </span>
         )}
       </FormGroup>
