@@ -32,7 +32,7 @@ export default function Navbar() {
       <div className="flex h-16 items-center justify-center border-b sm:hidden">
         <Branding />
       </div>
-      <nav className="sticky top-0 h-16 w-full border-b bg-background sm:border-b">
+      <nav className="sticky top-0 z-50 h-16 w-full border-b bg-background sm:border-b">
         <div className="mx-auto flex h-full w-full max-w-[1500px] items-center gap-2 px-2">
           <Link href="/" className="hidden h-full items-center gap-4 sm:flex">
             <Branding />
