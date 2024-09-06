@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
-import { z, ZodFormattedError } from "zod";
+import { boolean, z, ZodFormattedError } from "zod";
 import {
   Select,
   SelectContent,
@@ -43,50 +43,80 @@ const MineSchema = z.object({
   explosivesUsage: ExplosivesUsageSchema,
 });
 
+const MineDataSchema = z.object({
+  mines: z.array(MineSchema),
+  from: z.string().min(1),
+  to: z.string().min(1),
+});
+
 // Infer TypeScript types from Zod schemas
 type Mine = z.infer<typeof MineSchema>;
 type MineErrors = ZodFormattedError<Mine>;
 
+// Infer TypeScript types from Zod schemas
+type MineDataType = z.infer<typeof MineDataSchema>;
+type MineDataErrorsType = ZodFormattedError<MineDataType>;
+
 export default function CreateMineForm() {
-  const [mines, setMines] = useState<Mine[]>([
-    {
-      openCast: true,
-      fugitiveEmissions: {
-        coalMined: 0,
-        seamDegree: "",
-        mineDegree: null,
+  const fromDate = new Date();
+  const toDate = new Date();
+  toDate.setDate(toDate.getDate() + 365);
+  const [mineData, setMineData] = useState<MineDataType>({
+    from: fromDate.toISOString().slice(0, 10),
+    to: toDate.toISOString().slice(0, 10),
+    mines: [
+      {
+        openCast: true,
+        fugitiveEmissions: {
+          coalMined: 0,
+          seamDegree: "",
+          mineDegree: null,
+        },
+        fuelUsage: {
+          excavation: 0,
+          transportation: 0,
+          equipments: 0,
+        },
+        electricityUsage: {
+          equipments: 0,
+          others: 0,
+        },
+        explosivesUsage: {
+          weight: 0,
+        },
       },
-      fuelUsage: {
-        excavation: 0,
-        transportation: 0,
-        equipments: 0,
-      },
-      electricityUsage: {
-        equipments: 0,
-        others: 0,
-      },
-      explosivesUsage: {
-        weight: 0,
-      },
-    },
-  ]);
-  const [errors, setErrors] = useState<MineErrors[]>([]);
+    ],
+  });
+  const [mineErrors, setMineErrors] = useState<MineErrors[]>([]);
+  const [mineDataErrors, setMineDataErrors] = useState<MineDataErrorsType>({
+    _errors: [],
+  });
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        const mineResults = mines.map((mine) => MineSchema.safeParse(mine));
-        if (mineResults.every((result) => result.success)) {
+        const mineDataResult = MineDataSchema.safeParse(mineData);
+        const mineResults = mineData.mines.map((mine) =>
+          MineSchema.safeParse(mine)
+        );
+        if (
+          mineDataResult.success &&
+          mineResults.every((result) => result.success)
+        ) {
           console.log(
             "All mines are valid",
             mineResults.map((r) => r.data)
           );
-          setErrors([]);
+          setMineErrors([]);
+          setMineDataErrors({ _errors: [] });
           // TODO: SUBMIT HERE
         } else {
           console.log("Some mines are invalid", mineResults);
-          setErrors(
+          setMineDataErrors(
+            mineDataResult.error?.format() as MineDataErrorsType
+          );
+          setMineErrors(
             mineResults.map(
               (result) =>
                 (result.error?.format() || { _errors: [] }) as MineErrors
@@ -97,12 +127,62 @@ export default function CreateMineForm() {
     >
       <div className="mx-auto my-4 max-w-[800px] rounded-md border p-4">
         <h1 className="text-xl font-medium">Create Mine</h1>
-        {mines.map((mine, index) => (
+        <FormGroup>
+          <Label>From</Label>
+          <Input
+            type="date"
+            value={mineData.from}
+            onChange={(e) => {
+              setMineData((prevData) => ({
+                ...prevData,
+                from: e.target.value,
+              }));
+            }}
+          />
+          {mineDataErrors.from && (
+            <span className="col-start-2 mt-1 text-sm leading-none text-destructive">
+              {mineDataErrors.from._errors}
+            </span>
+          )}
+        </FormGroup>
+        <FormGroup>
+          <Label>To</Label>
+          <Input
+            type="date"
+            value={mineData.to}
+            onChange={(e) => {
+              setMineData((prevData) => ({
+                ...prevData,
+                to: e.target.value,
+              }));
+            }}
+          />
+          {mineDataErrors.to && (
+            <span className="col-start-2 mt-1 text-sm leading-none text-destructive">
+              {mineDataErrors.to._errors}
+            </span>
+          )}
+        </FormGroup>
+        {mineData.mines.map((mine, index) => (
           <MineForm
             key={index}
             mine={mine}
-            setMines={setMines}
-            errors={errors[index] || {}}
+            setMine={(
+              index: number,
+              newMine: Partial<Mine>,
+              deleteMine?: boolean
+            ) => {
+              setMineData((prevData) => {
+                const newMines = [...prevData.mines];
+                if (deleteMine) {
+                  newMines.splice(index, 1);
+                } else {
+                  newMines[index] = { ...newMines[index], ...newMine };
+                }
+                return { ...prevData, mines: newMines };
+              });
+            }}
+            errors={mineErrors[index] || {}}
             mineIndex={index}
           />
         ))}
@@ -112,29 +192,32 @@ export default function CreateMineForm() {
             className="gap-1 px-2"
             onClick={(e) => {
               e.preventDefault();
-              setMines((prevMines) => [
-                ...prevMines,
-                {
-                  openCast: true,
-                  fugitiveEmissions: {
-                    coalMined: 0,
-                    seamDegree: "",
-                    mineDegree: null,
+              setMineData((prevMineData) => ({
+                ...prevMineData,
+                mines: [
+                  ...prevMineData.mines,
+                  {
+                    openCast: true,
+                    fugitiveEmissions: {
+                      coalMined: 0,
+                      seamDegree: "",
+                      mineDegree: null,
+                    },
+                    fuelUsage: {
+                      excavation: 0,
+                      transportation: 0,
+                      equipments: 0,
+                    },
+                    electricityUsage: {
+                      equipments: 0,
+                      others: 0,
+                    },
+                    explosivesUsage: {
+                      weight: 0,
+                    },
                   },
-                  fuelUsage: {
-                    excavation: 0,
-                    transportation: 0,
-                    equipments: 0,
-                  },
-                  electricityUsage: {
-                    equipments: 0,
-                    others: 0,
-                  },
-                  explosivesUsage: {
-                    weight: 0,
-                  },
-                },
-              ]);
+                ],
+              }));
             }}
           >
             <PlusIcon className="size-6" />
@@ -149,12 +232,16 @@ export default function CreateMineForm() {
 
 function MineForm({
   mine,
-  setMines,
+  setMine,
   mineIndex,
   errors,
 }: {
   mine: Mine;
-  setMines: React.Dispatch<React.SetStateAction<Mine[]>>;
+  setMine: (
+    index: number,
+    newMine: Partial<Mine>,
+    deleteMine?: boolean
+  ) => void;
   mineIndex: number;
   errors: MineErrors;
 }) {
@@ -176,11 +263,7 @@ function MineForm({
           className="border-destructive text-destructive hover:text-destructive"
           onClick={(e) => {
             e.preventDefault();
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines.splice(mineIndex, 1);
-              return newMines;
-            });
+            setMine(mineIndex, {}, true);
           }}
         >
           Remove
@@ -191,14 +274,7 @@ function MineForm({
         <Select
           value={mine.openCast ? "open-cast" : "underground"}
           onValueChange={(e) => {
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                openCast: e === "open-cast",
-              };
-              return newMines;
-            });
+            setMine(mineIndex, { openCast: e === "open-cast" });
           }}
         >
           <SelectTrigger>
@@ -222,16 +298,11 @@ function MineForm({
           placeholder="0"
           onChange={(e) => {
             if (Number.isNaN(Number(e.target.value))) return;
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                fugitiveEmissions: {
-                  ...newMines[mineIndex].fugitiveEmissions,
-                  coalMined: Number(e.target.value),
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              fugitiveEmissions: {
+                ...mine.fugitiveEmissions,
+                coalMined: Number(e.target.value),
+              },
             });
           }}
         />
@@ -246,16 +317,11 @@ function MineForm({
         <Select
           value={mine.fugitiveEmissions.seamDegree || undefined}
           onValueChange={(e) => {
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                fugitiveEmissions: {
-                  ...newMines[mineIndex].fugitiveEmissions,
-                  seamDegree: e,
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              fugitiveEmissions: {
+                ...mine.fugitiveEmissions,
+                seamDegree: e,
+              },
             });
           }}
         >
@@ -281,16 +347,11 @@ function MineForm({
         <Select
           value={mine.fugitiveEmissions.mineDegree || undefined}
           onValueChange={(e) => {
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                fugitiveEmissions: {
-                  ...newMines[mineIndex].fugitiveEmissions,
-                  mineDegree: e,
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              fugitiveEmissions: {
+                ...mine.fugitiveEmissions,
+                mineDegree: e,
+              },
             });
           }}
         >
@@ -318,16 +379,11 @@ function MineForm({
           placeholder="0"
           onChange={(e) => {
             if (Number.isNaN(Number(e.target.value))) return;
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                fuelUsage: {
-                  ...newMines[mineIndex].fuelUsage,
-                  excavation: Number(e.target.value),
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              fuelUsage: {
+                ...mine.fuelUsage,
+                excavation: Number(e.target.value),
+              },
             });
           }}
         />
@@ -344,19 +400,14 @@ function MineForm({
           placeholder="0"
           onChange={(e) => {
             if (Number.isNaN(Number(e.target.value))) return;
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                fuelUsage: {
-                  ...newMines[mineIndex].fuelUsage,
-                  transportation: Number(e.target.value),
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              fuelUsage: {
+                ...mine.fuelUsage,
+                transportation: Number(e.target.value),
+              },
             });
           }}
-        />{" "}
+        />
         {errors.fuelUsage?.transportation && (
           <span className="col-start-2 mt-1 text-sm leading-none text-destructive">
             {errors.fuelUsage?.transportation._errors}
@@ -370,16 +421,11 @@ function MineForm({
           placeholder="0"
           onChange={(e) => {
             if (Number.isNaN(Number(e.target.value))) return;
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                fuelUsage: {
-                  ...newMines[mineIndex].fuelUsage,
-                  equipments: Number(e.target.value),
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              fuelUsage: {
+                ...mine.fuelUsage,
+                equipments: Number(e.target.value),
+              },
             });
           }}
         />
@@ -396,16 +442,11 @@ function MineForm({
           placeholder="0"
           onChange={(e) => {
             if (Number.isNaN(Number(e.target.value))) return;
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                electricityUsage: {
-                  ...newMines[mineIndex].electricityUsage,
-                  equipments: Number(e.target.value),
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              electricityUsage: {
+                ...mine.electricityUsage,
+                equipments: Number(e.target.value),
+              },
             });
           }}
         />
@@ -422,16 +463,11 @@ function MineForm({
           placeholder="0"
           onChange={(e) => {
             if (Number.isNaN(Number(e.target.value))) return;
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                electricityUsage: {
-                  ...newMines[mineIndex].electricityUsage,
-                  others: Number(e.target.value),
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              electricityUsage: {
+                ...mine.electricityUsage,
+                others: Number(e.target.value),
+              },
             });
           }}
         />
@@ -448,16 +484,11 @@ function MineForm({
           placeholder="0"
           onChange={(e) => {
             if (Number.isNaN(Number(e.target.value))) return;
-            setMines((prevMines) => {
-              const newMines = [...prevMines];
-              newMines[mineIndex] = {
-                ...newMines[mineIndex],
-                explosivesUsage: {
-                  ...newMines[mineIndex].explosivesUsage,
-                  weight: Number(e.target.value),
-                },
-              };
-              return newMines;
+            setMine(mineIndex, {
+              explosivesUsage: {
+                ...mine.explosivesUsage,
+                weight: Number(e.target.value),
+              },
             });
           }}
         />
@@ -473,7 +504,7 @@ function MineForm({
 
 function FormGroup({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[10ch,auto] items-center py-4">
+    <div className="grid items-center gap-2 py-4 sm:grid-cols-[15ch,auto]">
       {children}
     </div>
   );
