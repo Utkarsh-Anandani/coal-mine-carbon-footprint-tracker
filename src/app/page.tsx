@@ -1,5 +1,6 @@
-import { BarChartComponent } from "@/components/bar-chart";
-import { PieChartComponent } from "@/components/pie-chart";
+import { AreaChartComponent } from "@/components/charts/area-chart";
+import { BarChartComponent } from "@/components/charts/bar-chart";
+import { PieChartComponent } from "@/components/charts/pie-chart";
 import Link from "next/link";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
         <PieChartComponent />
         {/* the error in console is because of rechart, it might soon be fixed: https://github.com/recharts/recharts/issues/3615 */}
         <BarChartComponent />
+        <AreaChartComponent />
       </div>
     </div>
   );
